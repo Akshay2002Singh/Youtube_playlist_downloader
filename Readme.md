@@ -1,3 +1,3 @@
 # Made using python
 
-~ using tkinter
+* using tkinter *
