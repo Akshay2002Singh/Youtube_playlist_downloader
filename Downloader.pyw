@@ -6,12 +6,20 @@ from pytube.contrib.playlist import Playlist
 import os
 
 list=[]
+temp_status=""
+file_size=0
 # functions
 def clear_url_box():
     URL.set("")
 def update_status(temp):
     statusvar.set(temp)
     sbar.update()
+def update_percentage_status(temp):
+    statusvar.set(f"{temp_status}\nDone : {int(temp*100)}%")
+    sbar.update()
+def progress(stream,chunk,byte_remaining):
+    percent = (file_size-byte_remaining)/file_size
+    update_percentage_status(percent)
 def download_playlist():
     link=URL.get()
     update_status("Collecting information to download playlist.")
@@ -41,22 +49,29 @@ def download_playlist():
     URL.set("")
 
 def download_video(video_link,cur,last):
+    global temp_status
+    global file_size
     update_status(f"Checking video link {cur} out of {last}")
     if video_link!="":
         try:
-            yt=YouTube(video_link)
+            yt=YouTube(video_link,on_progress_callback=progress)
         except:
             list.append(video_link)
             return
 
-        update_status(f"Collecting information to download video {cur} out of {last}")
         # print(yt)
-        video = yt.streams.filter(progressive=True,file_extension='mp4')
-        video = video.get_highest_resolution()
+        try:
+            update_status(f"Collecting information to download video {cur} out of {last}")
+            video = yt.streams.filter(progressive=True,file_extension='mp4')
+            video = video.get_highest_resolution()
+        except:
+            return
         # print(video)
         try:
             # downloading the video
-            update_status(f"Downloading video {cur} out of {last}\nTitle:{video.title}\nSize:{video.filesize/1000000} MB")
+            file_size=video.filesize
+            temp_status=f"Downloading video {cur} out of {last}\nTitle:{video.title}\nSize:{video.filesize/1000000} MB"
+            update_percentage_status(0)
             video.download(cur_path.get())
             print(f"done {cur}")
             if video_link in list:
