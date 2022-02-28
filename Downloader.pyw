@@ -23,8 +23,14 @@ def progress(stream,chunk,byte_remaining):
 def download_playlist():
     link=URL.get()
     update_status("Collecting information to download playlist.")
-    playlist = Playlist(link)
-    temp_title=playlist.title.replace('/','_')
+    playlist = Playlist(link)  
+    try:
+        temp_title=playlist.title.replace('/','_')
+    except:
+        update_status("Enter Valid Playlist Link")
+        sleep(0.8)
+        update_status("Ready to download playlist")
+        return
     temp_path=os.path.join(os.getcwd(),temp_title)
     os.mkdir(temp_path)
     cur_path.set(temp_path)
